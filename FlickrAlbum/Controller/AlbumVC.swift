@@ -10,7 +10,7 @@ import UIKit
 
 class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout{
     
-
+    
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var loaderView: UIView!
     @IBOutlet weak var loaderImage: UIImageView!
@@ -25,6 +25,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     static var total: Int?
     static var constantTotal: Int?
+    
+    var imageUrlString: String?
     
     
     //Animator
@@ -50,14 +52,14 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     var searchBar:UISearchBar = {
         let srch = UISearchBar()
         srch.placeholder = "Search"
-
+        
         //srch.enablesReturnKeyAutomatically = true
         // srch.setShowsCancelButton(true, animated: true)
         return srch
     }()
     
     lazy var settingsLauncher: SettingsLauncher = {
-       
+        
         let launcher = SettingsLauncher()
         launcher.albumVC = self
         return launcher
@@ -72,8 +74,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         self.collectionView.delegate = self
         self.collectionView.dataSource = self
-       
-            SettingsLauncher.albumCollectionView = self.collectionView
+        
+        SettingsLauncher.albumCollectionView = self.collectionView
         
         searchBar.frame =  CGRect(x: 0, y: 0, width: view.bounds.width - 44.0, height: 44.0)
         searchBar.delegate = self
@@ -92,6 +94,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         self.navigationItem.rightBarButtonItem = barButton
         self.navigationController?.navigationBar.barTintColor = UIColor(red: 1.0, green: 51/255, blue: 101/255, alpha: 1.0)
         
+        self.navigationController?.hidesBarsOnSwipe = true
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -101,6 +105,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         AlbumVC.constantTotal = 19
         AlbumVC.total = 19
+        
+        
     }
     
     @objc func actionBtnTapped(){
@@ -118,28 +124,32 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         total! += constantTotal!
     }
     
-//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        loaderView.isHidden = true
-//    }
-
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView.panGestureRecognizer.translation(in: scrollView).y < 0 {
+            navigationController?.setNavigationBarHidden(true, animated: true)
+        } else {
+            navigationController?.setNavigationBarHidden(false, animated: true)
+        }
+    }
+    
     //end of the scroll view then load next 20 data from api
-//    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-//
-//        self.loadingAnim()
-//
-//    }
-//
-//    func scrollViewWillBeginDragging(_ scrollView: UIScrollView){
-//    }
-//
-//    func scrollViewDidScrollToTop(_ scrollView: UIScrollView){
-//        self.loaderView.isHidden = true
-//    }
+    //    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    //
+    //        self.loadingAnim()
+    //
+    //    }
+    //
+    //    func scrollViewWillBeginDragging(_ scrollView: UIScrollView){
+    //    }
+    //
+    //    func scrollViewDidScrollToTop(_ scrollView: UIScrollView){
+    //        self.loaderView.isHidden = true
+    //    }
     
-//    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool){
-//    }
+    //    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool){
+    //    }
     
-//   request web to down load data
+    //   request web to down load data
     
     func loadingAnim(){
         
@@ -161,60 +171,60 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         
-            let currentRow = indexPath.row
+        let currentRow = indexPath.row
         
-            print("*** INdexXXXX: \(indexPath.row)  ***")
+        print("*** INdexXXXX: \(indexPath.row)  ***")
         
-            print("*** total: \(AlbumVC.total)  ***")
+        print("*** total: \(AlbumVC.total)  ***")
         
+        
+        //print(" **** These are images in CACHE\(AlbumVC.imageCache)")
+        if indexPath.row == AlbumVC.total{
+            AlbumVC.getMorePage()
+            self.loadingAnim()
             
-            //print(" **** These are images in CACHE\(AlbumVC.imageCache)")
-            if indexPath.row == AlbumVC.total{
-                AlbumVC.getMorePage()
-                self.loadingAnim()
-                
-                print("*** Pagination Started \(indexPath.row)  ***")
-                
-                FlickrHelper.sharedInstance().photoData(searchStr: AlbumVC.searchString!) { (photos, error) in
-                    //print("\(photos)")
-                    if error == nil{
-                        if let photos = photos{
-                            self.flickrPhotos.append(contentsOf: photos)
-                            //print("\(self.flickrPhotos)")
-                            DispatchQueue.main.async {
-                                self.stopLoadingAnim()
-                                self.collectionView.reloadData()
-                            }
+            print("*** Pagination Started \(indexPath.row)  ***")
+            
+            FlickrHelper.sharedInstance().photoData(searchStr: AlbumVC.searchString!) { (photos, error) in
+                //print("\(photos)")
+                if error == nil{
+                    if let photos = photos{
+                        self.flickrPhotos.append(contentsOf: photos)
+                        //print("\(self.flickrPhotos)")
+                        DispatchQueue.main.async {
+                            self.stopLoadingAnim()
+                            self.collectionView.reloadData()
                         }
                     }
                 }
             }
+        }
         
         
         //Prefetching and caching large images :
         //But will result in too much load on network:
         
-//        DispatchQueue.global(qos: .background).async {
-//
-//            for photo in self.flickrPhotos{
-//                FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
-//            }
-//
-//        }
+                DispatchQueue.global(qos: .background).async {
         
-        let photo = self.flickrPhotos[indexPath.row]
-
-        FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
+                    for photo in self.flickrPhotos{
+                        FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
+                    }
+        
+                }
+        
+//        let photo = self.flickrPhotos[indexPath.row]
+//
+//        FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
         
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-
-//        if UIScreen.main.bounds.width < 375{
-//            return CGSize(width: 100, height: 100)
-//        }else{
-//            return CGSize(width: 110, height: 110)
-//        }
+        
+        //        if UIScreen.main.bounds.width < 375{
+        //            return CGSize(width: 100, height: 100)
+        //        }else{
+        //            return CGSize(width: 110, height: 110)
+        //        }
         
         let screenRect = UIScreen.main.bounds
         let screenWidth = screenRect.size.width
@@ -225,7 +235,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         //print("\(size)")
         
         return size;
-
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -245,35 +255,40 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         let photo = self.flickrPhotos[indexPath.row]
         
         let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
+        
+        let url = URL(string: imageUrl)
+        
+        if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString) {
             
-            let url = URL(string: imageUrl)
+            //print("******** Cached Imge In cellForRowAt ****")
             
-            if let cachedImage = AlbumVC.imageCache.object(forKey: url?.absoluteString as! NSString) {
+            cell.imageVIew.image = cachedImage
+        }else{
+            cell.imageVIew.image = photo.thumbnail
+            
+            if cell.imageVIew.image == nil{
                 
-                //print("******** Cached Imge In cellForRowAt ****")
+                cell.imageVIew.image = UIImage(named: "Placeholder")
                 
-                cell.imageVIew.image = cachedImage
-            }else{
-                cell.imageVIew.image = photo.thumbnail
+                self.imageUrlString = imageUrl
                 
-                if cell.imageVIew.image == nil{
-                    
-                    cell.imageVIew.image = UIImage(named: "Placeholder")
-                    
-                    let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
-                    //print("*** cellForRow AT \n\(imageUrl)")
-                    do{
-                        let imageData: Data = try Data(contentsOf: URL(string: imageUrl)!, options: [])
-                        let image: UIImage = UIImage(data: imageData)!
-                        //print("This is image data in cellForRowAt :\n\(imageData)")
+                let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
+                //print("*** cellForRow AT \n\(imageUrl)")
+                
+                FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
+                    if let data = data {
+                        guard let image: UIImage = UIImage(data: data)else{return}
                         DispatchQueue.main.async {
-                            cell.imageVIew.image = image
+                            if self.imageUrlString == imageUrl{
+                                cell.imageVIew.image = image
+                                AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
+                            }
                         }
-                    }catch{
-                        print(error)
                     }
-                }
+                })
+                
             }
+        }
         
         return cell
     }

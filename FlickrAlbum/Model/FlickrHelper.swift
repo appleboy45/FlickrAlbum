@@ -38,31 +38,28 @@ class FlickrHelper: NSObject {
         
         guard let url = URL(string: searchURL) else{return}
         
-        DispatchQueue.global(qos: .userInitiated).async {
-            URLSession.shared.dataTask(with:url) { (data, response, error) in
-                if error != nil {
-                    print(error)
+        URLSession.shared.dataTask(with:url) { (data, response, error) in
+            if error != nil {
+                print(error)
+                
+                completion(nil,error)
+            } else {
+                do {
                     
-                    completion(nil,error)
-                } else {
-                    do {
-                        
-                        let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:Any]
-                        
-                        //print("URLSession Data Response:\n\(parsedData)")
-                        if let photos = self.parsePhotos(JSONData: parsedData){
-                            DispatchQueue.global(qos: .userInteractive).async {
-                                FlickrHelper.downloadImage(photoData: photos)
-                            }
-                            completion(photos,nil)
-                        }
-                    } catch let error as NSError {
-                        print(error)
-                        completion(nil,error)
+                    let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:Any]
+                    
+                    //print("URLSession Data Response:\n\(parsedData)")
+                    if let photos = self.parsePhotos(JSONData: parsedData){
+                        self.downloadImage(photoData: photos)
+                        completion(photos,nil)
                     }
+                } catch let error as NSError {
+                    print(error)
+                    completion(nil,error)
                 }
-                }.resume()
-        }
+            }
+        }.resume()
+        
     }
     
     func parsePhotos(JSONData: Any) -> [FlickrPhoto]? {
@@ -87,44 +84,57 @@ class FlickrHelper: NSObject {
         
         guard let url = URL(string: imageUrl)else{return}
         DispatchQueue.global(qos: .background).async {
-            if let cachedImage = AlbumVC.imageCache.object(forKey: url.absoluteString as NSString){
+            if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString){
                 print("Large Image in CacheFound")
                 return
             }else{
-                do{
-                    let imageData: Data = try Data(contentsOf: url,options: [])
-                    guard let image: UIImage = UIImage(data: imageData)else{return}
-                    AlbumVC.imageCache.setObject(image, forKey: url.absoluteString as NSString)
-                }catch{
-                    print(error)
-                }
+                self.downloadImageFrom(urlString: imageUrl, completion: { (data) in
+                    if let data = data {
+                        guard let image: UIImage = UIImage(data: data)else{return}
+                        AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
+                    }
+                })
             }
         }
     }
     
-    static func downloadImage(photoData: [FlickrPhoto]){
+    func downloadImage(photoData: [FlickrPhoto]){
         
-        DispatchQueue.global(qos: .userInteractive).async {
+        DispatchQueue.global(qos: .background).async {
+            
             for photo in photoData{
                 
                 let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
                 guard let url = URL(string: imageUrl)else{return}
                 //print("FlickrPhoto init\n\(imageUrl)")
                 
-                if let cachedImage = AlbumVC.imageCache.object(forKey: url.absoluteString as NSString) {
+                if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString) {
                     return
                 } else {
-                    do{
-                        let imageData: Data = try Data(contentsOf: URL(string: imageUrl)!, options: [])
-                        //print("This is image data in init :\n\(imageData)")
-                        guard let image: UIImage = UIImage(data: imageData)else{return}
-                        AlbumVC.imageCache.setObject(image, forKey: url.absoluteString as NSString)
-                    }catch{
-                        print(error)
-                    }
+                    
+                    self.downloadImageFrom(urlString: imageUrl, completion: { (data) in
+                        if let data = data {
+                            guard let image: UIImage = UIImage(data: data)else{return}
+                            AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
+                        }
+                    })
                 }
             }
         }
+    }
+    
+    func downloadImageFrom(urlString:String, completion:@escaping(Data?)->()) {
+        guard let url = URL(string:urlString) else { return }
+        let request = URLRequest(url: url)
+        URLSession.shared.dataTask(with: request) { (data, _, err) in
+            if err != nil {
+                // handle error if any
+            }
+            // you should check the reponse status
+            // if data is a json object/dictionary so decode it
+            // if data is regular data then pass it to your callback
+            completion(data)
+            }.resume()
     }
     
     class func sharedInstance() -> FlickrHelper {

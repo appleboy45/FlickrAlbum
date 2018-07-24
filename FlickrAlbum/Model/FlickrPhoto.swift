@@ -19,7 +19,7 @@ class FlickrPhoto{
     var server: String?
     var secret: String?
     
-    
+    let flickrHelper = FlickrHelper()
     
     init(dictionary: [String:AnyObject]) {
         
@@ -37,15 +37,17 @@ class FlickrPhoto{
             if let cachedImage = AlbumVC.imageCache.object(forKey: url?.absoluteString as! NSString) {
                 self.thumbnail = cachedImage
             }else{
-                do{
-                    let imageData: Data = try Data(contentsOf: URL(string: imageUrl)!, options: [])
-                    //print("This is image data in init :\n\(imageData)")
-                    let image: UIImage = UIImage(data: imageData)!
-                    
-                    self.thumbnail = image
-                }catch{
-                    print(error)
-                }
+                
+                self.flickrHelper.downloadImageFrom(urlString: imageUrl, completion: { (data) in
+                    if let data = data {
+                        // now you have the data
+                        DispatchQueue.main.async {
+                            // display your imageView with the data
+                            guard let image: UIImage = UIImage(data: data)else{return}
+                            self.thumbnail = image
+                        }
+                    }
+                })
             }
         }
     }
