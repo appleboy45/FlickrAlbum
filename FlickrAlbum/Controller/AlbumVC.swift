@@ -191,7 +191,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
             }
         
         
-        //caching large image
+        //Prefetching and caching large images :
+        //But will result in too much load on network:
         
 //        DispatchQueue.global(qos: .background).async {
 //
