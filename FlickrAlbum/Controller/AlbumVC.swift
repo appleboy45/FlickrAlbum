@@ -26,6 +26,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     static var total: Int?
     static var constantTotal: Int?
     
+    var prefetchingLargeImage: Bool = false
+    
     var imageUrlString: String?
     
     
@@ -200,17 +202,19 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
             }
         }
         
-        
-        //Prefetching and caching large images :
-        //But will result in too much load on network:
-        
-                DispatchQueue.global(qos: .background).async {
-        
-                    for photo in self.flickrPhotos{
-                        FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
-                    }
-        
+        if prefetchingLargeImage == false{
+            //Prefetching and caching large images :
+            self.prefetchingLargeImage = true
+            DispatchQueue.global(qos: .background).async {
+                
+                for photo in self.flickrPhotos{
+                    FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
                 }
+                
+            }
+        }
+        
+        
         
 //        let photo = self.flickrPhotos[indexPath.row]
 //
@@ -323,6 +327,7 @@ extension AlbumVC: UISearchBarDelegate {
         searchBar.setShowsCancelButton(false, animated: true)
         self.collectionView.setContentOffset(CGPoint(x: 0, y: 44), animated: true)
         self.loadingAnim()
+        self.prefetchingLargeImage = false
         FlickrHelper.sharedInstance().photoData(searchStr: AlbumVC.searchString!) { (photos, error) in
             //print("\(photos)")
             if error == nil{
