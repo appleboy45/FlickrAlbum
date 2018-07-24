@@ -103,7 +103,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         self.navigationItem.titleView = searchBar
         self.collectionView.contentInset = UIEdgeInsets(top: 64, left: 0, bottom: 0, right: 0)
         
-        AlbumVC.constantTotal = 19
+        AlbumVC.constantTotal = 20
         AlbumVC.total = 19
         
         
@@ -179,7 +179,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         
         //print(" **** These are images in CACHE\(AlbumVC.imageCache)")
-        if indexPath.row == AlbumVC.total{
+        if indexPath.row == (AlbumVC.total! - 1){
             AlbumVC.getMorePage()
             self.loadingAnim()
             
@@ -201,13 +201,13 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         }
         
             //Prefetching and caching large images :
-            DispatchQueue.global(qos: .background).async {
-                
-                for photo in self.flickrPhotos{
-                    FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
-                }
-                
-            }
+//            DispatchQueue.global(qos: .background).async {
+//
+//                for photo in self.flickrPhotos{
+//                    FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
+//                }
+//
+//            }
         
         
         
@@ -275,18 +275,19 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
                 let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
                 //print("*** cellForRow AT \n\(imageUrl)")
                 
-                FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
-                    if let data = data {
-                        guard let image: UIImage = UIImage(data: data)else{return}
-                        DispatchQueue.main.async {
-                            if self.imageUrlString == imageUrl{
-                                cell.imageVIew.image = image
-                                AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
+                DispatchQueue.global(qos: .background).async {
+                    FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
+                        if let data = data {
+                            guard let image: UIImage = UIImage(data: data)else{return}
+                            DispatchQueue.main.async {
+                                if self.imageUrlString == imageUrl{
+                                    cell.imageVIew.image = image
+                                    AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
+                                }
                             }
                         }
-                    }
-                })
-                
+                    })
+                }
             }
         }
         
