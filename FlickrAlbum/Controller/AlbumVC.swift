@@ -281,8 +281,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
                             guard let image: UIImage = UIImage(data: data)else{return}
                             DispatchQueue.main.async {
                                 if self.imageUrlString == imageUrl{
-                                    cell.imageVIew.imageFromServerURL(urlString: imageUrl)
-                                    //image = image
+                                    cell.imageVIew.image = image
                                     AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
                                 }
                             }
