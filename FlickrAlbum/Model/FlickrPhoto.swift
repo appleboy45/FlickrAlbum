@@ -19,8 +19,6 @@ class FlickrPhoto{
     var server: String?
     var secret: String?
     
-    let flickrHelper = FlickrHelper()
-    
     init(dictionary: [String:AnyObject]) {
         
         photoID = dictionary["id"] as? String
@@ -38,7 +36,7 @@ class FlickrPhoto{
                 self.thumbnail = cachedImage
             }else{
                 
-                self.flickrHelper.downloadImageFrom(urlString: imageUrl, completion: { (data) in
+                FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
                     if let data = data {
                         // now you have the data
                         DispatchQueue.main.async {
