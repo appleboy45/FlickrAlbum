@@ -272,10 +272,10 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
                 
                 self.imageUrlString = imageUrl
                 
-                let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
+                //let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
                 //print("*** cellForRow AT \n\(imageUrl)")
                 
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.main.async {
                     FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
                         if let data = data {
                             guard let image: UIImage = UIImage(data: data)else{return}
@@ -283,6 +283,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
                                 if self.imageUrlString == imageUrl{
                                     cell.imageVIew.image = image
                                     AlbumVC.imageCache.setObject(image, forKey: imageUrl as NSString)
+                                    let visibleIndexPath = collectionView.indexPathsForVisibleItems
+                                    collectionView.reloadItems(at: visibleIndexPath)
                                 }
                             }
                         }

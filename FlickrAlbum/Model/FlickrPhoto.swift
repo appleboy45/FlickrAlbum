@@ -27,15 +27,14 @@ class FlickrPhoto{
         farm = dictionary["farm"] as? Int
         
         DispatchQueue.global(qos: .userInteractive).async {
-        
+            
             let imageUrl = "https://farm\(self.farm!).staticflickr.com/\(self.server!)/\(self.photoID!)_\(self.secret!)_m.jpg"
             let url = URL(string: imageUrl)
             //print("FlickrPhoto init\n\(imageUrl)")
             
-            if let cachedImage = AlbumVC.imageCache.object(forKey: url?.absoluteString as! NSString) {
+            if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString) {
                 self.thumbnail = cachedImage
             }else{
-                
                 FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
                     if let data = data {
                         // now you have the data

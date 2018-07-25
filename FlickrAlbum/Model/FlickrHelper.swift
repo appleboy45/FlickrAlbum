@@ -83,7 +83,7 @@ class FlickrHelper: NSObject {
         let imageUrl = "https://farm\(farm).staticflickr.com/\(server)/\(photoId)_\(secret)_b.jpg"
         
         guard let url = URL(string: imageUrl)else{return}
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .userInteractive).async {
             if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString){
                 print("Large Image in CacheFound")
                 return
@@ -100,7 +100,7 @@ class FlickrHelper: NSObject {
     
     func downloadImage(photoData: [FlickrPhoto]){
         
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .userInteractive).async {
             
             for photo in photoData{
                 
@@ -129,6 +129,10 @@ class FlickrHelper: NSObject {
         URLSession.shared.dataTask(with: request) { (data, _, err) in
             if err != nil {
                 // handle error if any
+            }
+            if let data = data{
+                guard let image: UIImage = UIImage(data: data)else{return}
+                AlbumVC.imageCache.setObject(image, forKey: urlString as NSString)
             }
             // you should check the reponse status
             // if data is a json object/dictionary so decode it
