@@ -20,17 +20,7 @@ class FlickrHelper: NSObject {
         
     }
     
-    class func getImageURL(photo: FlickrPhoto, size: String) -> String{
-        var _size: String = size
-        
-        if _size.isEmpty{
-            _size = "m"
-        }
-        return "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_\(_size).jpg"
-        //https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
-    }
-    
-    //class func getImage
+    //getting phota json data
     
     func photoData(searchStr: String, completion:@escaping(_ photos:[FlickrPhoto]?, _ error: Error?) -> Void){
         
@@ -48,7 +38,6 @@ class FlickrHelper: NSObject {
                     
                     let parsedData = try JSONSerialization.jsonObject(with: data!) as! [String:Any]
                     
-                    //print("URLSession Data Response:\n\(parsedData)")
                     if let photos = self.parsePhotos(JSONData: parsedData){
                         self.downloadImage(photoData: photos)
                         completion(photos,nil)
@@ -62,14 +51,13 @@ class FlickrHelper: NSObject {
         
     }
     
+    //extracting json data
+    
     func parsePhotos(JSONData: Any) -> [FlickrPhoto]? {
         if let dictionary = JSONData as? [String: AnyObject] {
-            //print("*** This id dictionary parsed *** :\n\(dictionary)")
             if dictionary["stat"] as? String == "ok" {
                 if let photos = dictionary["photos"]{
-                    //print("These are photo :\n\(photos)")
                     if let photo = photos["photo"]{
-                        //print("These are photo :\n\(photo)")
                         return FlickrPhoto.photoFromResults(photo as! [[String : AnyObject]])
                     }
                 }
@@ -78,11 +66,14 @@ class FlickrHelper: NSObject {
         return nil
     }
     
+    //Downloading Large Size Images
+    
     func downloadLargeImage(farm: Int, server: String, photoId: String,secret: String){
         
         let imageUrl = "https://farm\(farm).staticflickr.com/\(server)/\(photoId)_\(secret)_b.jpg"
         
         guard let url = URL(string: imageUrl)else{return}
+        
         DispatchQueue.global(qos: .userInteractive).async {
             if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString){
                 print("Large Image in CacheFound")
@@ -98,6 +89,8 @@ class FlickrHelper: NSObject {
         }
     }
     
+    //Downloading thumbnail Images
+    
     func downloadImage(photoData: [FlickrPhoto]){
         
         DispatchQueue.global(qos: .userInteractive).async {
@@ -105,8 +98,6 @@ class FlickrHelper: NSObject {
             for photo in photoData{
                 
                 let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
-                guard let url = URL(string: imageUrl)else{return}
-                //print("FlickrPhoto init\n\(imageUrl)")
                 
                 if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString) {
                     return
@@ -122,6 +113,7 @@ class FlickrHelper: NSObject {
             }
         }
     }
+    
     
     func downloadImageFrom(urlString:String, completion:@escaping(Data?)->()) {
         guard let url = URL(string:urlString) else { return }
@@ -140,6 +132,7 @@ class FlickrHelper: NSObject {
             completion(data)
             }.resume()
     }
+    
     
     class func sharedInstance() -> FlickrHelper {
         struct Singleton {

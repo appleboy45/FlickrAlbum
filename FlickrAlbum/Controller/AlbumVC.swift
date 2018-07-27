@@ -8,7 +8,7 @@
 
 import UIKit
 
-class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout{
+class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UINavigationControllerDelegate{
     
     
     @IBOutlet weak var collectionView: UICollectionView!
@@ -33,8 +33,6 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     let transition = PopAnimator()
     var selectedImage: UIImageView?
     
-    //settingTapped
-    //let settings = SettingsLauncher()
     
     //numberOfCellsPerRow
     static var numberOfCellsPerRow: Int = 2
@@ -52,9 +50,6 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     var searchBar:UISearchBar = {
         let srch = UISearchBar()
         srch.placeholder = "Search"
-        
-        //srch.enablesReturnKeyAutomatically = true
-        // srch.setShowsCancelButton(true, animated: true)
         return srch
     }()
     
@@ -67,10 +62,12 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        //vineet
         transition.dismissCompletion = {
             self.selectedImage!.isHidden = false
         }
+    
+        self.navigationController?.delegate = self
         
         self.collectionView.delegate = self
         self.collectionView.dataSource = self
@@ -127,25 +124,6 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         }
     }
     
-    //end of the scroll view then load next 20 data from api
-    //    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    //
-    //        self.loadingAnim()
-    //
-    //    }
-    //
-    //    func scrollViewWillBeginDragging(_ scrollView: UIScrollView){
-    //    }
-    //
-    //    func scrollViewDidScrollToTop(_ scrollView: UIScrollView){
-    //        self.loaderView.isHidden = true
-    //    }
-    
-    //    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool){
-    //    }
-    
-    //   request web to down load data
-    
     func loadingAnim(){
         
         loaderView.isHidden = false
@@ -168,12 +146,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         let currentRow = indexPath.row
         
-        print("*** INdexXXXX: \(indexPath.row)  ***")
+        //Pagination
         
-        print("*** total: \(AlbumVC.total)  ***")
-        
-        
-        //print(" **** These are images in CACHE\(AlbumVC.imageCache)")
         if indexPath.row == (AlbumVC.total - 2){
             AlbumVC.getMorePage()
             self.loadingAnim()
@@ -195,17 +169,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
             }
         }
         
-            //Prefetching and caching large images :
-//            DispatchQueue.global(qos: .background).async {
-//
-//                for photo in self.flickrPhotos{
-//                    FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
-//                }
-//
-//            }
-        
-        
-        
+        //Prefetching Large Images Data
         
         let photo = self.flickrPhotos[indexPath.row]
 
@@ -215,19 +179,13 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        //        if UIScreen.main.bounds.width < 375{
-        //            return CGSize(width: 100, height: 100)
-        //        }else{
-        //            return CGSize(width: 110, height: 110)
-        //        }
+        //changing cell per row
         
         let screenRect = UIScreen.main.bounds
         let screenWidth = screenRect.size.width
         let minimumSpace = CGFloat((AlbumVC.numberOfCellsPerRow - 1) * 10)
-        //print("minimumSpace :\(minimumSpace)")
         let cellWidth = (screenWidth - minimumSpace) / CGFloat(AlbumVC.numberOfCellsPerRow)
         let size = CGSize(width: cellWidth, height: cellWidth)
-        //print("\(size)")
         
         return size;
         
@@ -238,24 +196,21 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        //print("\(self.flickrPhotos.count)")
         return self.flickrPhotos.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! PhotoCollectionViewCell
         
-        //print("\(self.flickrPhotos[indexPath.row].thumbnail)")
         
         let photo = self.flickrPhotos[indexPath.row]
         
         let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
         
-        let url = URL(string: imageUrl)
+        //checking if the image is in Cache:
         
         if let cachedImage = AlbumVC.imageCache.object(forKey: imageUrl as NSString) {
             
-            //print("******** Cached Imge In cellForRowAt ****")
             
             cell.imageVIew.image = cachedImage
         }else{
@@ -266,9 +221,6 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
                 cell.imageVIew.image = UIImage(named: "Placeholder")
                 
                 self.imageUrlString = imageUrl
-                
-                //let imageUrl = "https://farm\(photo.farm!).staticflickr.com/\(photo.server!)/\(photo.photoID!)_\(photo.secret!)_m.jpg"
-                //print("*** cellForRow AT \n\(imageUrl)")
                 
                 DispatchQueue.main.async {
                     FlickrHelper.sharedInstance().downloadImageFrom(urlString: imageUrl, completion: { (data) in
@@ -295,7 +247,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         let cell = self.collectionView.cellForItem(at: indexPath) as! PhotoCollectionViewCell
         
-        selectedImage = cell.imageVIew
+        self.selectedImage = cell.imageVIew
         self.currentIndex = indexPath
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -316,17 +268,17 @@ extension AlbumVC: UISearchBarDelegate {
         searchBar.setShowsCancelButton(true, animated: true)
     }
     
+    //Searching for the entered Keyword:
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
         searchBar.setShowsCancelButton(false, animated: true)
         self.collectionView.setContentOffset(CGPoint(x: 0, y: 44), animated: true)
         self.loadingAnim()
         FlickrHelper.sharedInstance().photoData(searchStr: AlbumVC.searchString!) { (photos, error) in
-            //print("\(photos)")
             if error == nil{
                 if let photos = photos{
                     self.flickrPhotos = photos
-                    //print("\(self.flickrPhotos)")
                     DispatchQueue.main.async {
                         self.stopLoadingAnim()
                         self.collectionView.reloadData()
@@ -360,25 +312,23 @@ extension AlbumVC: UISearchBarDelegate {
 }
 
 extension AlbumVC: UIViewControllerTransitioningDelegate{
-    
+
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        
+
         transition.originFrame =
             selectedImage!.superview!.convert(selectedImage!.frame, to: nil)
-        
+
         transition.presenting = true
         selectedImage!.isHidden = true
-        
+
         return transition
     }
-    
+
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         transition.presenting = false
+
         return transition
     }
-    
-    
-    
 }
 
 

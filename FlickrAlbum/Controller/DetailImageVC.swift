@@ -28,7 +28,7 @@ class DetailImageVC: UIViewController {
         self.view.addSubview(navBar)
         let navItem = UINavigationItem(title: "Image")
         let doneItem = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(handleDismiss));
-        navItem.rightBarButtonItem = doneItem;
+        navItem.rightBarButtonItem = doneItem
         navBar.setItems([navItem], animated: false)
         
         //statusbarSetup
@@ -44,6 +44,7 @@ class DetailImageVC: UIViewController {
     }
     
     @objc func handleDismiss(){
+        
         self.dismiss(animated: true, completion: nil)
     }
     
