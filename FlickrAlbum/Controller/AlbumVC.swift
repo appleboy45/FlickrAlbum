@@ -24,7 +24,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     var currentIndex: IndexPath?
     
     static var total: Int = 20
-    static var constantTotal: Int = 19
+    static var constantTotal: Int = 20
     
     var imageUrlString: String?
     
@@ -174,7 +174,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         
         //print(" **** These are images in CACHE\(AlbumVC.imageCache)")
-        if indexPath.row == (AlbumVC.total - 1){
+        if indexPath.row == (AlbumVC.total - 2){
             AlbumVC.getMorePage()
             self.loadingAnim()
             
