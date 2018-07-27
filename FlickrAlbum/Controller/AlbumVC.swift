@@ -23,8 +23,8 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     var currentIndex: IndexPath?
     
-    static var total: Int?
-    static var constantTotal: Int?
+    static var total: Int = 20
+    static var constantTotal: Int = 19
     
     var imageUrlString: String?
     
@@ -102,11 +102,6 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         self.navigationItem.titleView = searchBar
         self.collectionView.contentInset = UIEdgeInsets(top: 64, left: 0, bottom: 0, right: 0)
-        
-        AlbumVC.constantTotal = 20
-        AlbumVC.total = 19
-        
-        
     }
     
     @objc func actionBtnTapped(){
@@ -121,7 +116,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     class func getMorePage(){
         page = page + 1
-        total! += constantTotal!
+        total += constantTotal
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -179,7 +174,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         
         //print(" **** These are images in CACHE\(AlbumVC.imageCache)")
-        if indexPath.row == (AlbumVC.total! - 1){
+        if indexPath.row == (AlbumVC.total - 1){
             AlbumVC.getMorePage()
             self.loadingAnim()
             
@@ -212,9 +207,9 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
         
         
         
-//        let photo = self.flickrPhotos[indexPath.row]
-//
-//        FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
+        let photo = self.flickrPhotos[indexPath.row]
+
+        FlickrHelper.sharedInstance().downloadLargeImage(farm: photo.farm!, server: photo.server!, photoId: photo.photoID!, secret: photo.secret!)
         
     }
     

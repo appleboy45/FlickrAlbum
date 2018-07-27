@@ -39,6 +39,8 @@ class SettingsLauncher: NSObject, UICollectionViewDataSource, UICollectionViewDe
             blackView.frame = window.frame
             blackView.alpha = 0
             
+            collectionView.reloadData()
+            
             window.addSubview(collectionView)
             
             let height: CGFloat = 200
@@ -73,6 +75,13 @@ class SettingsLauncher: NSObject, UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellId", for: indexPath) as! SettingsCollectionViewCell
         cell.rowLabel.text = self.rowArray[indexPath.row]
+        
+        if indexPath.row == AlbumVC.numberOfCellsPerRow - 1{
+            cell.isHighlighted = true
+        }else{
+            cell.isHighlighted = false
+        }
+        
         
         return cell
     }
