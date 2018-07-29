@@ -18,11 +18,11 @@ class DetailImageVC: UIViewController {
     var farm: Int?
     var server: String?
     var secret: String?
+    let navBar: UINavigationBar = UINavigationBar(frame: CGRect(x: 0, y: 20, width: UIScreen.main.bounds.width, height: 44))
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let navBar: UINavigationBar = UINavigationBar(frame: CGRect(x: 0, y: 20, width: UIScreen.main.bounds.width, height: 44))
         navBar.isTranslucent = false
         self.navigationController?.navigationBar.barTintColor = UIColor(red: 1.0, green: 51/255, blue: 101/255, alpha: 1.0)
         self.view.addSubview(navBar)
@@ -30,12 +30,13 @@ class DetailImageVC: UIViewController {
         let doneItem = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(handleDismiss));
         navItem.rightBarButtonItem = doneItem
         navBar.setItems([navItem], animated: false)
-        
+
         //statusbarSetup
         let statusBarBackgroundView = UIView()
         statusBarBackgroundView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 20)
         statusBarBackgroundView.backgroundColor = UIColor(red: 1.0, green: 51/255, blue: 101/255, alpha: 1.0)
         self.view.addSubview(statusBarBackgroundView)
+        
         
     }
     
@@ -53,6 +54,7 @@ class DetailImageVC: UIViewController {
         let imageUrl = "https://farm\(self.farm!).staticflickr.com/\(self.server!)/\(self.photoID!)_\(self.secret!)_b.jpg"
         
         guard let url = URL(string: imageUrl)else{return}
+        
         DispatchQueue.global(qos: .background).async {
             if let cachedImage = AlbumVC.imageCache.object(forKey: url.absoluteString as NSString){
                 print("Large Image in CacheFound")
@@ -78,3 +80,6 @@ class DetailImageVC: UIViewController {
         }
     }
 }
+
+
+

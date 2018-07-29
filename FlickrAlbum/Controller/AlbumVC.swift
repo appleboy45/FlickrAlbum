@@ -32,6 +32,12 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     //Animator
     let transition = PopAnimator()
     var selectedImage: UIImageView?
+
+    let detailObj = DetailImageVC()
+    
+    private var animationController: PopAnimator = PopAnimator()
+    var hideSelectedCell: Bool = false
+    
     
     
     //numberOfCellsPerRow
@@ -62,7 +68,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //vineet
+        
         transition.dismissCompletion = {
             self.selectedImage!.isHidden = false
         }
@@ -98,7 +104,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     override func viewWillAppear(_ animated: Bool) {
         
         self.navigationItem.titleView = searchBar
-        self.collectionView.contentInset = UIEdgeInsets(top: 64, left: 0, bottom: 0, right: 0)
+        self.collectionView.contentInset = UIEdgeInsets(top: 64, left: 0, bottom: 50, right: 0)
     }
     
     @objc func actionBtnTapped(){
@@ -127,7 +133,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
     func loadingAnim(){
         
         loaderView.isHidden = false
-        var animation = CABasicAnimation(keyPath: "transform.rotation.z")
+        let animation = CABasicAnimation(keyPath: "transform.rotation.z")
         animation.toValue = Int(M_PI_2)
         animation.duration = 0.075
         animation.isCumulative = true
@@ -155,11 +161,9 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
             print("*** Pagination Started \(indexPath.row)  ***")
             
             FlickrHelper.sharedInstance().photoData(searchStr: AlbumVC.searchString!) { (photos, error) in
-                //print("\(photos)")
                 if error == nil{
                     if let photos = photos{
                         self.flickrPhotos.append(contentsOf: photos)
-                        //print("\(self.flickrPhotos)")
                         DispatchQueue.main.async {
                             self.stopLoadingAnim()
                             self.collectionView.reloadData()
@@ -213,6 +217,7 @@ class AlbumVC: UIViewController, UICollectionViewDelegate, UICollectionViewDataS
             
             
             cell.imageVIew.image = cachedImage
+        
         }else{
             cell.imageVIew.image = photo.thumbnail
             
@@ -282,6 +287,8 @@ extension AlbumVC: UISearchBarDelegate {
                     DispatchQueue.main.async {
                         self.stopLoadingAnim()
                         self.collectionView.reloadData()
+                        AlbumVC.constantTotal = 20
+                        AlbumVC.total = 20
                     }
                 }
             }
@@ -320,13 +327,12 @@ extension AlbumVC: UIViewControllerTransitioningDelegate{
 
         transition.presenting = true
         selectedImage!.isHidden = true
-
+        
         return transition
     }
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         transition.presenting = false
-
         return transition
     }
 }
